@@ -1,5 +1,5 @@
 const { readBonusNumber, readInputMoney, readWinningNumbers } = require("./InputView");
-const { generateLotto } = require("./LottoGenerator");
+const { printIssuedLottos, printResult } = require("./OutputView");
 const Lotto = require("./Lotto");
 const Model = require("./Model");
 
@@ -9,17 +9,30 @@ class Controller {
   }
 
   start() {
-    readInputMoney(this.LottoGame.issueLotto);
-    this.#getWinningNumbers();
+    readInputMoney(this.#getLottoNumbers.bind(this));
   }
 
-  #getWinningNumbers() {}
+  #getLottoNumbers(money) {
+    this.LottoGame.issueLotto(money);
+    printIssuedLottos(this.LottoGame.totalGames, this.LottoGame.lottoNumbers);
+    readWinningNumbers(this.#getWinningNumbers.bind(this));
+  }
 
-  #getBonusNumber() {}
+  #getWinningNumbers(winningNumbers) {
+    const WINNING_NUMBERS = winningNumbers.split(",").map((x) => parseInt(x));
+    this.LottoValidation = new Lotto(WINNING_NUMBERS);
+    readBonusNumber(this.#getBonusNumber.bind(this));
+  }
 
-  #resultCheck() {}
+  #getBonusNumber(bonuseNumber) {
+    this.LottoGame.resultCheck(this.LottoValidation.winningNumbers, parseInt(bonuseNumber));
+    this.#getResult();
+  }
 
-  #calculateEarningsRate() {}
+  #getResult() {
+    const EARNINGS_RATE = this.LottoGame.calculateEarningsRate();
+    printResult(this.LottoGame.grades, EARNINGS_RATE);
+  }
 }
 
 module.exports = Controller;
